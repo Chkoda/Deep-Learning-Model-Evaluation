@@ -13275,7 +13275,92 @@ _________________________________________________________________
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_features</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">yamlConfig</span><span class="p">,</span> <span class="n">test_size</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+    <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">StandardScaler</span>
+
+    <span class="c1"># To use one data file:</span>
+    <span class="n">h5File</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">inputFile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">treeArray</span> <span class="o">=</span> <span class="n">h5File</span><span class="p">[</span><span class="n">options</span><span class="o">.</span><span class="n">tree</span><span class="p">][()]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">treeArray</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1">#print(treeArray.dtype.names)</span>
+    
+    <span class="c1"># List of features to use</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;Inputs&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># List of labels to use</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;Labels&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Convert to dataframe</span>
+    <span class="n">features_labels_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">treeArray</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">features</span><span class="o">+</span><span class="n">labels</span><span class="p">)))</span>
+    <span class="n">features_labels_df</span> <span class="o">=</span> <span class="n">features_labels_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+    <span class="n">features_df</span> <span class="o">=</span> <span class="n">features_labels_df</span><span class="p">[</span><span class="n">features</span><span class="p">]</span>
+    <span class="n">labels_df</span> <span class="o">=</span> <span class="n">features_labels_df</span><span class="p">[</span><span class="n">labels</span><span class="p">]</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="n">features_df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">labels_df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;Conv&#39;</span> <span class="ow">in</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;InputType&#39;</span><span class="p">]:</span>
+        <span class="n">labels_df</span> <span class="o">=</span> <span class="n">labels_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+        
+    <span class="c1"># Convert to numpy array </span>
+    <span class="n">features_val</span> <span class="o">=</span> <span class="n">features_df</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">labels_val</span> <span class="o">=</span> <span class="n">labels_df</span><span class="o">.</span><span class="n">values</span>     
+
+    <span class="k">if</span> <span class="s1">&#39;j_index&#39;</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+        <span class="n">features_val</span> <span class="o">=</span> <span class="n">features_val</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># drop the j_index feature</span>
+    <span class="k">if</span> <span class="s1">&#39;j_index&#39;</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">labels_val</span> <span class="o">=</span> <span class="n">labels_val</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># drop the j_index label</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">labels_val</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;InputType&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Conv1D&#39;</span><span class="p">:</span>
+        <span class="n">features_2dval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">labels_df</span><span class="p">),</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;MaxParticles&#39;</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels_df</span><span class="p">)):</span>
+            <span class="n">features_df_i</span> <span class="o">=</span> <span class="n">features_df</span><span class="p">[</span><span class="n">features_df</span><span class="p">[</span><span class="s1">&#39;j_index&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">labels_df</span><span class="p">[</span><span class="s1">&#39;j_index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">index_values</span> <span class="o">=</span> <span class="n">features_df_i</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+            <span class="c1">#features_val_i = features_val[index_values[0]:index_values[-1]+1,:-1] # drop the last feature j_index</span>
+            <span class="n">features_val_i</span> <span class="o">=</span> <span class="n">features_val</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">index_values</span><span class="p">),:]</span>
+            <span class="n">nParticles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">features_val_i</span><span class="p">)</span>
+            <span class="c1">#print(&quot;before&quot;, features_val_i[:,0])</span>
+            <span class="n">features_val_i</span> <span class="o">=</span> <span class="n">features_val_i</span><span class="p">[</span><span class="n">features_val_i</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="c1"># sort descending by first value (ptrel, usually)</span>
+            <span class="c1">#print(&quot;after&quot;, features_val_i[:,0])</span>
+            <span class="k">if</span> <span class="n">nParticles</span><span class="o">&gt;</span><span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;MaxParticles&#39;</span><span class="p">]:</span>
+                <span class="n">features_val_i</span> <span class="o">=</span>  <span class="n">features_val_i</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;MaxParticles&#39;</span><span class="p">],:]</span>
+            <span class="k">else</span><span class="p">:</span>        
+                <span class="n">features_val_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">features_val_i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;MaxParticles&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">nParticles</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))])</span>
+            <span class="n">features_2dval</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">features_val_i</span>
+
+        <span class="n">features_val</span> <span class="o">=</span> <span class="n">features_2dval</span>
+
+    <span class="n">X_train_val</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train_val</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">features_val</span><span class="p">,</span> <span class="n">labels_val</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">test_size</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+    
+    <span class="c1">#Normalize conv inputs</span>
+    <span class="k">if</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;NormalizeInputs&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">yamlConfig</span><span class="p">[</span><span class="s1">&#39;InputType&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Conv1D&#39;</span><span class="p">:</span>
+        <span class="n">reshape_X_train_val</span> <span class="o">=</span> <span class="n">X_train_val</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_train_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">X_train_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">X_train_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">scaler</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">reshape_X_train_val</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X_train_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">X_train_val</span><span class="p">[:,</span><span class="n">p</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_train_val</span><span class="p">[:,</span><span class="n">p</span><span class="p">,:])</span>
+            <span class="n">X_test</span><span class="p">[:,</span><span class="n">p</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_test</span><span class="p">[:,</span><span class="n">p</span><span class="p">,:])</span>    
+
+    <span class="k">if</span> <span class="s1">&#39;j_index&#39;</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">X_train_val</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train_val</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">labels</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_train_val</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train_val</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">labels</span>  <span class="o">=</span> <span class="n">get_features</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">yamlConfig</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.99</span><span class="p">)</span>
@@ -13296,7 +13381,18 @@ _________________________________________________________________
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>(5131613,)
-(&#39;index&#39;, &#39;j_ptfrac&#39;, &#39;j_pt&#39;, &#39;j_eta&#39;, &#39;j_mass&#39;, &#39;j_tau1_b1&#39;, &#39;j_tau2_b1&#39;, &#39;j_tau3_b1&#39;, &#39;j_tau1_b2&#39;, &#39;j_tau2_b2&#39;, &#39;j_tau3_b2&#39;, &#39;j_tau32_b1&#39;, &#39;j_tau32_b2&#39;, &#39;j_zlogz&#39;, &#39;j_c1_b0&#39;, &#39;j_c1_b1&#39;, &#39;j_c1_b2&#39;, &#39;j_c2_b1&#39;, &#39;j_c2_b2&#39;, &#39;j_d2_b1&#39;, &#39;j_d2_b2&#39;, &#39;j_d2_a1_b1&#39;, &#39;j_d2_a1_b2&#39;, &#39;j_m2_b1&#39;, &#39;j_m2_b2&#39;, &#39;j_n2_b1&#39;, &#39;j_n2_b2&#39;, &#39;j_tau1_b1_mmdt&#39;, &#39;j_tau2_b1_mmdt&#39;, &#39;j_tau3_b1_mmdt&#39;, &#39;j_tau1_b2_mmdt&#39;, &#39;j_tau2_b2_mmdt&#39;, &#39;j_tau3_b2_mmdt&#39;, &#39;j_tau32_b1_mmdt&#39;, &#39;j_tau32_b2_mmdt&#39;, &#39;j_c1_b0_mmdt&#39;, &#39;j_c1_b1_mmdt&#39;, &#39;j_c1_b2_mmdt&#39;, &#39;j_c2_b1_mmdt&#39;, &#39;j_c2_b2_mmdt&#39;, &#39;j_d2_b1_mmdt&#39;, &#39;j_d2_b2_mmdt&#39;, &#39;j_d2_a1_b1_mmdt&#39;, &#39;j_d2_a1_b2_mmdt&#39;, &#39;j_m2_b1_mmdt&#39;, &#39;j_m2_b2_mmdt&#39;, &#39;j_n2_b1_mmdt&#39;, &#39;j_n2_b2_mmdt&#39;, &#39;j_mass_trim&#39;, &#39;j_mass_mmdt&#39;, &#39;j_mass_prun&#39;, &#39;j_mass_sdb2&#39;, &#39;j_mass_sdm1&#39;, &#39;j_multiplicity&#39;, &#39;j1_px&#39;, &#39;j1_py&#39;, &#39;j1_pz&#39;, &#39;j1_e&#39;, &#39;j1_pdgid&#39;, &#39;j1_erel&#39;, &#39;j1_pt&#39;, &#39;j1_ptrel&#39;, &#39;j1_eta&#39;, &#39;j1_etarel&#39;, &#39;j1_etarot&#39;, &#39;j1_phi&#39;, &#39;j1_phirel&#39;, &#39;j1_phirot&#39;, &#39;j1_deltaR&#39;, &#39;j1_costheta&#39;, &#39;j1_costhetarel&#39;, &#39;j1_e1mcosthetarel&#39;, &#39;j_g&#39;, &#39;j_q&#39;, &#39;j_w&#39;, &#39;j_z&#39;, &#39;j_t&#39;, &#39;j_undef&#39;, &#39;j_index&#39;)
+   j1_ptrel  j1_etarot  j1_phirot   j1_erel  j1_deltaR  j1_pdgid  j_index
+0  0.386118   0.000000   0.000000  0.382772   0.011056     130.0   101333
+1  0.107734  -0.009859   0.007236  0.105703   0.023104     211.0   101333
+2  0.094731   0.004508  -0.002759  0.094339   0.006306     321.0   101333
+3  0.042086   0.028567  -0.014909  0.042913   0.022473     211.0   101333
+4  0.039412  -0.018020  -0.003745  0.038547   0.025492    -211.0   101333
+   j_g  j_q  j_w  j_z  j_t  j_index
+0    1    0    0    0    0   101333
+1    1    0    0    0    0   101333
+2    1    0    0    0    0   101333
+3    1    0    0    0    0   101333
+4    1    0    0    0    0   101333
 (98769, 5)
 </pre>
 </div>
@@ -13308,7 +13404,7 @@ _________________________________________________________________
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span> <span class="c1">#99% of dataset is retained as training set</span>
@@ -13324,7 +13420,7 @@ _________________________________________________________________
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[5]:</div>
+    <div class="prompt output_prompt">Out[34]:</div>
 
 
 
@@ -13341,7 +13437,7 @@ _________________________________________________________________
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">y_test</span><span class="o">.</span><span class="n">shape</span>
@@ -13357,7 +13453,7 @@ _________________________________________________________________
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[6]:</div>
+    <div class="prompt output_prompt">Out[35]:</div>
 
 
 
@@ -13381,7 +13477,7 @@ _________________________________________________________________
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[36]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">makeRoc</span><span class="p">(</span><span class="n">features_val</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">labels_val</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">):</span>
@@ -13419,7 +13515,7 @@ _________________________________________________________________
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[37]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">y_pred</span> <span class="o">=</span> <span class="n">makeRoc</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
