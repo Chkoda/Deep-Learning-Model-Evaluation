@@ -30,7 +30,7 @@ def print_model_to_json(keras_model, outfile_name):
 
 def get_features(options, yamlConfig, test_size):
     # To use one data file:
-    h5File = h5py.File(options.inputFile)
+    h5File = h5py.File(options.inputFile, 'r')
     treeArray = h5File[options.tree][()]
 
     print(treeArray.shape)
