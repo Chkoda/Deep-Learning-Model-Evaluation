@@ -9,7 +9,7 @@ np.random.seed(seed)
 from optparse import OptionParser
 import h5py
 from keras.optimizers import Adam, Nadam
-#from callbacks import all_callbacks
+from callbacks import all_callbacks
 import pandas as pd
 from keras.layers import Input
 from sklearn.model_selection import train_test_split
@@ -28,9 +28,9 @@ def print_model_to_json(keras_model, outfile_name):
         json.dump(obj, outfile, sort_keys=True,indent=4, separators=(',', ': '))
         outfile.write('\n')
 
-def get_features(options, yamlConfig, test_size):
+def get_features(options, yamlConfig):
     # To use one data file:
-    h5File = h5py.File(options.inputFile, 'r')
+    h5File = h5py.File(options.inputFile)
     treeArray = h5File[options.tree][()]
 
     print(treeArray.shape)
@@ -101,7 +101,7 @@ def get_features(options, yamlConfig, test_size):
                     features_2dval[i,ix,iy,0] = hist[ix,iy]
         features_val = features_2dval
 
-    X_train_val, X_test, y_train_val, y_test = train_test_split(features_val, labels_val, test_size=test_size, random_state=42)
+    X_train_val, X_test, y_train_val, y_test = train_test_split(features_val, labels_val, test_size=0.2, random_state=42)
     
     #Normalize inputs
     if yamlConfig['NormalizeInputs'] and yamlConfig['InputType']!='Conv1D' and yamlConfig['InputType']!='Conv2D':

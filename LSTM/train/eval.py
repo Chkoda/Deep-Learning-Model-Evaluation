@@ -87,7 +87,7 @@ def makeRoc(features_val, labels, labels_val, model, outputDir):
         auc1[label] = auc(fpr[label], tpr[label])
             
         plt.plot(tpr[label],fpr[label],label='%s tagger, AUC = %.1f%%'%(label.replace('j_',''),auc1[label]*100.))
-    #plt.semilogy()
+    plt.semilogy()
     plt.xlabel("Signal Efficiency")
     plt.ylabel("Background Efficiency")
     plt.ylim(0.001,1)
@@ -95,7 +95,7 @@ def makeRoc(features_val, labels, labels_val, model, outputDir):
     plt.legend(loc='upper left')
     plt.figtext(0.25, 0.90,'hls4ml',fontweight='bold', wrap=True, horizontalalignment='right', fontsize=14)
     #plt.figtext(0.35, 0.90,'preliminary', style='italic', wrap=True, horizontalalignment='center', fontsize=14) 
-    plt.savefig('%s/ROC.pdf'%(outputDir))
+    plt.savefig('%s/ROC.pdf'%(options.outputDir))
     return predict_test
 
     
